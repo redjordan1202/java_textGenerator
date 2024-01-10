@@ -6,22 +6,35 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.Desktop;
-
 import org.apache.poi.ss.usermodel.*;
-
 
 public class App 
 {
     public static void main( String[] args ) throws IOException
     {
-        Workbook workbook = WorkbookFactory.create(new File("/Users/jordandelpilar/Desktop/farts.xlsx"));
+        final JFileChooser fc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        fc.setFileFilter(new FileNameExtensionFilter("Excel Spreadsheets", "xlsx") );
+        int selection_state = fc.showOpenDialog(null);
+        String excel_path = "";
+        String parent_dir ="";
+
+        if(selection_state == JFileChooser.APPROVE_OPTION) {
+            excel_path = fc.getSelectedFile().getAbsolutePath();
+            parent_dir = fc.getSelectedFile().getParent();
+        }
+
+        Workbook workbook = WorkbookFactory.create(new File(excel_path));
         Sheet sheet = workbook.getSheetAt(0);
+
         LocalDateTime today_raw = LocalDateTime.now();
         DateTimeFormatter date_format = DateTimeFormatter.ofPattern("MM-DD-YYYY");
         String today = today_raw.format(date_format);
-        File file = new File(today + ".txt");
-        FileWriter out_file = new FileWriter(file);
+        File txt_file = new File(String.format("%s/%s.txt", parent_dir, today));
+        FileWriter out_file = new FileWriter(txt_file);
 
         String msg = 
 """
@@ -161,7 +174,6 @@ You will receive another text notification 30 minutes prior to arrival. If there
         }
 
         out_file.close();
-        Desktop.getDesktop().open(file);
-
+        Desktop.getDesktop().open(txt_file);
     }
 }
